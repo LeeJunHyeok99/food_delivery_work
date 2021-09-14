@@ -24,7 +24,7 @@
 
 
 
-#서비스 시나리오
+# 서비스 시나리오
 	
 가. 기능적 요구사항
 
@@ -206,6 +206,7 @@ https://www.msaez.io/#/storming/7znb05057kPWQo1TAWCkGM0O2LJ3/5843d1078a788a01aa8
 ```
 
 # 구현
+--
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 바운더리 컨텍스트 별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
 
 ```
@@ -220,6 +221,7 @@ mvn spring-boot:run
 ```
 
 # DDD의 적용
+--
 	- Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 데이터 접근 어댑터를 개발하였는가? 
 각 서비스 내에 도출된 핵심 Aggregate Root 객체를 Entity로 선언하였다. (주문(order), 배송(productdelivery), 마케팅(marketing)) 
 
@@ -254,6 +256,7 @@ http PATCH localhost:8088/orders/5 orderStatus="orderCanceled"
 #### 주문취소하기 캡쳐화면
 
 # 동기식 호출과 Fallback 처리
+--
 (Request-Response 방식의 서비스 중심 아키텍처 구현)
 
 마이크로 서비스간 Request-Response 호출에 있어 대상 서비스를 어떠한 방식으로 찾아서 호출 하였는가? (Service Discovery, REST, FeignClient)
@@ -261,6 +264,7 @@ http PATCH localhost:8088/orders/5 orderStatus="orderCanceled"
 요구사항대로 주문이 들어와야지만 결제 서비스를 호출할 수 있도록 주문 시 결제 처리를 동기식으로 호출하도록 한다.
 
 # 비동기식 호출과 Eventual Consistency 
+--
 (이벤트 드리븐 아키텍처)
 
 카프카를 이용하여 PubSub 으로 하나 이상의 서비스가 연동되었는가?
@@ -271,11 +275,13 @@ Correlation-key: 각 이벤트 건 (메시지)가 어떠한 폴리시를 처리�
 
 
 # SAGA 패턴 
+--
 - 취소에 따른 보상 트랜잭션을 설계하였는가(Saga Pattern)
 #### 답변 : SAGA 패턴은 각 서비스의 트랜잭션 완료 후에 다음 서비스가 트리거 되어 트랜잭션을 실행하는 방법으로현재 BookDelivery 시스템도 SAGA 패턴으로 설계되어 있다.
 
 
 # CQRS 
+--
 - CQRS: Materialized View 를 구현하여, 타 마이크로서비스의 데이터 원본에 접근없이(Composite 서비스나 조인SQL 등 없이) 도 내 서비스의 화면 구성과 잦은 조회가 가능한가?
 
 
@@ -289,6 +295,7 @@ Correlation-key: 각 이벤트 건 (메시지)가 어떠한 폴리시를 처리�
 ordermanagement 서비스만 구동되고 delivery 서비스는 멈춰있는 상태이다. 주문관리에 이벤트가 발생하면 카프카 큐에 정상적으로 들어감을 확인할 수 있다.
 
 # 폴리글랏 퍼시스턴스
+--
 - 각 마이크로 서비스들이 각자의 저장소 구조를 자율적으로 채택하고 각자의 저장소 유형 (RDB, NoSQL, File System 등)을 선택하여 구현하였는가?
 #### 답변 
 Payment 서비스의 경우 타 서비스들의 비해 안정성이 중요하다고 생각하였다. H2 DB의 경우 대규모 주문이 발생시 안정성과 성능이 아직은 부족하다고 생각했다. 그래서 안정성과 성능이 높은 DB와 경제성(라이센스 비용)에 강점이 있는 Maria DB를 선택하게 되었다.
@@ -296,6 +303,7 @@ Payment 서비스의 경우 타 서비스들의 비해 안정성이 중요하다
 Payment서비스 pom.xml 의존성을 변경해 주었다.
 
 # API 게이트웨이 
+--
 - API GW를 통하여 마이크로 서비스들의 진입점을 통일할 수 있는가?
 #### 답변
 아래는 MSAEZ를 통해 자동 생성된 gateway 서비스의 application.yml이며, 마이크로서비스들의 진입점을 통일하여 URL Path에 따라서 마이크로서비스별 서로 다른 포트로 라우팅시키도록 설정되었다.
