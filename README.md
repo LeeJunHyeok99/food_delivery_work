@@ -284,6 +284,68 @@ Correlation-key: 각 이벤트 건 (메시지)가 어떠한 폴리시를 처리�
 캡쳐화면 등록 
 ````
 
-Message Consumer 마이크로서비스가 장애상황에서 수신받지 못했던 기존 이벤트들을 다시 수신받아 처리하는가?
+- Message Consumer 마이크로서비스가 장애상황에서 수신받지 못했던 기존 이벤트들을 다시 수신받아 처리하는가?
 #### 답변 
 ordermanagement 서비스만 구동되고 delivery 서비스는 멈춰있는 상태이다. 주문관리에 이벤트가 발생하면 카프카 큐에 정상적으로 들어감을 확인할 수 있다.
+
+# 폴리글랏 퍼시스턴스
+- 각 마이크로 서비스들이 각자의 저장소 구조를 자율적으로 채택하고 각자의 저장소 유형 (RDB, NoSQL, File System 등)을 선택하여 구현하였는가?
+#### 답변 
+Payment 서비스의 경우 타 서비스들의 비해 안정성이 중요하다고 생각하였다. H2 DB의 경우 대규모 주문이 발생시 안정성과 성능이 아직은 부족하다고 생각했다. 그래서 안정성과 성능이 높은 DB와 경제성(라이센스 비용)에 강점이 있는 Maria DB를 선택하게 되었다.
+
+Payment서비스 pom.xml 의존성을 변경해 주었다.
+
+# API 게이트웨이 
+- API GW를 통하여 마이크로 서비스들의 진입점을 통일할 수 있는가?
+#### 답변
+아래는 MSAEZ를 통해 자동 생성된 gateway 서비스의 application.yml이며, 마이크로서비스들의 진입점을 통일하여 URL Path에 따라서 마이크로서비스별 서로 다른 포트로 라우팅시키도록 설정되었다.
+
+# 운영
+--
+# Deploy/Pipeline 
+-- 
+(CI/CD 설정) BuildSpec.yml 사용 각 MSA 구현물은 git의 source repository 에 구성되었고, AWS의 CodeBuild를 활용하여 무정지 CI/CD를 설정하였다.
+
+CodeBuild 설정
+
+빌드 프로젝드 생성(각 MSA별 별도 설정)
+```
+AWS 화면 내 캡처
+```
+
+- 기본 repository 
+``` 
+repository 화면 캡쳐 
+```
+
+- 빌드 환경 설정 
+환경변수(KUBE_URL, KUBE_TOKEN, repository 등 설정) 
+```
+환경변수 화면 캡처 
+```
+
+- 빌드 스펙
+```
+buildspec.yml 파일 내용 캡쳐 
+```
+
+# 동기식 호출 / Circuit Breaker / 장애격리
+서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
+오더 요청이 과도할 경우 서킷 브레이크를 통해 장애 격리를 하려고 한다.
+
+Hystrix 를 설정: 요청처리 쓰레드에서 처리시간이 610 ms가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
+
+# Autoscale(HPA) 
+-- 
+
+# Zero-downtime deploy (Readiness Probe) 
+-- 
+(무정지 배포) 서비스의 무정지 배포를 위하여 주문관리(Ordermanagement) 서비스의 배포 yaml 파일에 readinessProbe 옵션을 추가하였다.
+
+# ConfigMap
+-- 
+운영환경에서 컨피그맵을 통해 pod 생성 시 정해진 kafka url 과 log 파일 설정(운영과 개발 분리)
+
+# Self-healing (Liveness Probe) 
+-- 
+주문관리(Ordermanagement) 서비스의 배포 yaml 파일에 Pod 내 /tmp/healthy 파일을 5초마다 체크하도록 livenessProbe 옵션을 추가하였다
