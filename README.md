@@ -16,7 +16,7 @@
   - [운영](#운영)
     - [Deploy/Pipeline](#deploypipeline)
     - [동기식 호출 / Circuit Breaker / 장애격리](#동기식-호출-circuit-breaker-장애격리)
-    - [Autoscale(HPA)](#autoscale(hpa))
+    - [Autoscale(HPA)](#Autoscale(HPA))
     - [Zero-downtime deploy (Readiness Probe)](#zerodowntime-deploy-(readiness-Probe))
     - [ConfigMap](#configmap)
     - [Self-healing (Liveness Probe)](#self-healing-(liveness-probe))
